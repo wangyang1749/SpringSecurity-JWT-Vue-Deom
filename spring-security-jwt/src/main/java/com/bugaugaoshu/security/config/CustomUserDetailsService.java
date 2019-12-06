@@ -19,11 +19,11 @@ public class CustomUserDetailsService implements UserDetailsService {
     private List<UserDetails> userList = new ArrayList<>();
 
     public CustomUserDetailsService() {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
-        UserDetails user = User.withUsername("user").password(passwordEncoder.encode("123456")).authorities(WebSecurityConfig.USER).build();
-        UserDetails admin = User.withUsername("admin").password(passwordEncoder.encode("123456")).authorities(WebSecurityConfig.ADMIN).build();
-        userList.add(user);
-        userList.add(admin);
+//        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+//        UserDetails user = User.withUsername("user").password(passwordEncoder.encode("123456")).authorities(WebSecurityConfig.USER).build();
+//        UserDetails admin = User.withUsername("admin").password(passwordEncoder.encode("123456")).authorities(WebSecurityConfig.ADMIN).build();
+//        userList.add(user);
+//        userList.add(admin);
     }
 
     @Override

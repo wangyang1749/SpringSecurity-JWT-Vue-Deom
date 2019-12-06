@@ -7,6 +7,7 @@ import com.bugaugaoshu.security.damain.ResultDetails;
 import com.bugaugaoshu.security.exception.CustomizeException;
 import com.bugaugaoshu.security.service.SystemDataService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -55,17 +56,18 @@ public class SystemDataServiceImpl implements SystemDataService {
         resultDetails.setMessage("删除成功！");
         resultDetails.setSuccess(true);
         resultDetails.setTimestamp(LocalDateTime.now());
-        if (authorities.equals(WebSecurityConfig.ADMIN)) {
-            systemDataCache.getMap().remove(customData.getId());
-            return resultDetails;
-        } else {
-            if (customData.getData().charAt(0) == '#') {
-                systemDataCache.getMap().remove(customData.getId());
-                return resultDetails;
-            } else {
-                throw new CustomizeException("权限不足");
-            }
-        }
+//        if (authorities.equals(WebSecurityConfig.ADMIN)) {
+//            systemDataCache.getMap().remove(customData.getId());
+//            return resultDetails;
+//        } else {
+//            if (customData.getData().charAt(0) == '#') {
+//                systemDataCache.getMap().remove(customData.getId());
+//                return resultDetails;
+//            } else {
+//                throw new CustomizeException("权限不足");
+//            }
+//        }
+        return null;
     }
 
     @Override

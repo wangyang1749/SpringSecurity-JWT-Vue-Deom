@@ -44,6 +44,7 @@ public class AdminController {
 
     @DeleteMapping("/data/{id}")
     public ResultDetails delete(@PathVariable("id") String id) {
-        return systemDataService.delete(id, WebSecurityConfig.ADMIN);
+//        return systemDataService.delete(id, WebSecurityConfig.ADMIN);
+        return null;
     }
 }

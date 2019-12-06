@@ -7,11 +7,14 @@ import com.bugaugaoshu.security.model.User;
 import com.bugaugaoshu.security.service.LoginCountService;
 import com.bugaugaoshu.security.service.VerifyCodeService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.HtmlUtils;
@@ -24,27 +27,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.Date;
 
 /**
  * JWt登录验证的过滤器
  */
 public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
-//    private final VerifyCodeService verifyCodeService;
-//
-//    private final LoginCountService loginCountService;
-
-    /**
-     * @param defaultFilterProcessesUrl 配置要过滤的地址，即登陆地址
-     * @param authenticationManager 认证管理器，校验身份时会用到
-   */
-//    public JwtLoginFilter(String defaultFilterProcessesUrl, AuthenticationManager authenticationManager,
-//                          VerifyCodeService verifyCodeService, LoginCountService loginCountService) {
-//        super(new AntPathRequestMatcher(defaultFilterProcessesUrl));
-//        this.loginCountService = loginCountService;
-//        // 为 AbstractAuthenticationProcessingFilter 中的属性赋值
-//        setAuthenticationManager(authenticationManager);
-//        this.verifyCodeService = verifyCodeService;
-//    }
 
 
     public JwtLoginFilter(String defaultFilterProcessesUrl,AuthenticationManager authenticationManager) {
@@ -57,27 +46,20 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
      * */
     @Override
     public Authentication attemptAuthentication(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws AuthenticationException, IOException, ServletException {
-        // 判断是否要抛出 登陆请求过快的异常
-//        loginCountService.judgeLoginCount(httpServletRequest);
-        // 获取 User 对象
-        // readValue 第一个参数 输入流，第二个参数 要转换的对象
+        /**
+         * 过去用户输入的用户对象
+         */
         User user = new ObjectMapper().readValue(httpServletRequest.getInputStream(), User.class);
-        // 验证码验证
-//        verifyCodeService.verify(httpServletRequest.getSession().getId(), user.getVerifyCode());
-        // 对 html 标签进行转义，防止 XSS 攻击
-        String username = user.getUsername();
-        username = HtmlUtils.htmlEscape(username);
+        /**
+         *将用户名和没密码获取到一个实例中
+         */
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                username,
+                user.getUsername(),
                 user.getPassword(),
                 user.getAuthorities()
         );
-        // 添加验证的附加信息
-        // 包括验证码信息和是否记住我
-        token.setDetails(new LoginDetails(user.getRememberMe(), user.getVerifyCode()));
         /**
-         * 进行登陆验证
-         * 通过=调用public interface AuthenticationManager的实现进行验证
+         * 通过调用public interface AuthenticationManager的实现登录验证
           */
         return getAuthenticationManager().authenticate(token);
     }
@@ -87,9 +69,32 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
      * */
     @Override
     protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
-//        loginCountService.cleanLoginCount(request);
-        // 登陆成功
-        TokenAuthenticationHelper.addAuthentication(request, response ,authResult);
+        /**
+         * 获取登录用户具有的角色
+         */
+        Collection<? extends GrantedAuthority> authorities = authResult.getAuthorities();
+        /**
+         * 遍历用户角色，为生成token做准备
+         */
+        StringBuffer stringBuffer = new StringBuffer();
+        authorities.forEach(authority -> {
+            stringBuffer.append(authority.getAuthority()).append(",");
+        });
+        String jwt = Jwts.builder()
+                // Subject 设置用户名
+                .setSubject(authResult.getName())
+                // 设置用户权限
+                .claim("authorities", stringBuffer)
+                // 过期时间
+                .setExpiration(new Date(System.currentTimeMillis() + 7200000))
+                // 签名算法
+                .signWith(SignatureAlgorithm.HS512, "wangyang")
+                .compact();
+        response.setContentType("application/json; charset=UTF-8");
+        PrintWriter out = response.getWriter();
+        out.write(jwt);
+        out.flush();
+        out.close();
     }
 
     /**
@@ -97,18 +102,9 @@ public class JwtLoginFilter extends AbstractAuthenticationProcessingFilter {
      * */
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
-        // 错误请求次数加 1
-//        loginCountService.addLoginCount(request, 1);
-        // 向前端写入数据
-        ErrorDetails errorDetails = new ErrorDetails();
-        errorDetails.setStatus(HttpStatus.UNAUTHORIZED.value());
-        errorDetails.setMessage("登陆失败！");
-        errorDetails.setError(failed.getLocalizedMessage());
-        errorDetails.setTimestamp(LocalDateTime.now());
-        errorDetails.setPath(request.getServletPath());
         response.setContentType("application/json; charset=UTF-8");
         PrintWriter out = response.getWriter();
-        out.write(new ObjectMapper().writeValueAsString(errorDetails));
+        out.write("登录失败");
         out.flush();
         out.close();
     }

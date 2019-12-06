@@ -47,6 +47,7 @@ public class UserController {
 
     @DeleteMapping("/data/{id}")
     public ResultDetails delete(@PathVariable("id") String id) {
-        return systemDataService.delete(id, WebSecurityConfig.USER);
+//        return systemDataService.delete(id, WebSecurityConfig.USER);
+        return null;
     }
 }
