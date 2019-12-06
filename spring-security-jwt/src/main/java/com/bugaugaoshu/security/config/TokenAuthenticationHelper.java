@@ -78,6 +78,9 @@ public class TokenAuthenticationHelper {
         cookie.setHttpOnly(true);
         cookie.setPath("/");
         cookie.setMaxAge(cookExpirationTime);
+        /**
+         * 登录成功生成cookie添加到浏览器
+         */
         response.addCookie(cookie);
 
         // 向前端写入数据

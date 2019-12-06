@@ -65,16 +65,18 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     /**
      * 跨域配置
      */
-    @Bean
+//    @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         // 允许跨域访问的 URL
         List<String> allowedOriginsUrl = new ArrayList<>();
-        allowedOriginsUrl.add("http://localhost:8080");
-        allowedOriginsUrl.add("http://127.0.0.1:8080");
+
+        allowedOriginsUrl.add("http://localhost:8081");
+        allowedOriginsUrl.add("http://127.0.0.1:8081");
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
         // 设置允许跨域访问的 URL
         config.setAllowedOrigins(allowedOriginsUrl);
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -98,7 +100,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 // 添加过滤器链,前一个参数过滤器， 后一个参数过滤器添加的地方
                 // 登陆过滤器
-                .addFilterBefore(new JwtLoginFilter("/api/login", authenticationManager(), verifyCodeService, loginCountService), UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(new JwtLoginFilter("/api/login", authenticationManager()), UsernamePasswordAuthenticationFilter.class)
                 // 请求过滤器
                 .addFilterBefore(new JwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
                 // 开启跨域
@@ -106,9 +108,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 // 开启 csrf
                 .csrf()
-                // .disable();
-                .ignoringAntMatchers(PERMIT_ALL_MAPPING)
-                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                 .disable();
+//                .ignoringAntMatchers(PERMIT_ALL_MAPPING)
+//                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
     }
 
     @Override
